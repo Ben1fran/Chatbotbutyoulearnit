@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Puffbot</title>
+  <title>Chatbot</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -74,26 +74,52 @@
     #chat-submit:hover {
       background-color: #1565c0;
     }
-    #bot-typing {
-      color: #aaa;
-      font-style: italic;
+    #response-container {
       display: none;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+    #response-input {
+      width: calc(100% - 20px);
+      margin-bottom: 10px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      font-size: 16px;
+      outline: none;
+    }
+    #response-submit {
+      background-color: #4caf50;
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: 8px 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    #response-submit:hover {
+      background-color: #388e3c;
     }
   </style>
 </head>
 <body>
   <div id="chat-container"></div>
-  <div id="bot-typing">Puffbot is Typing...</div>
   <div id="chat-input-container">
     <input type="text" id="chat-input" placeholder="Type your message...">
     <button id="chat-submit">Send</button>
+  </div>
+  <div id="response-container">
+    <input type="text" id="response-input" placeholder="Provide a response...">
+    <button id="response-submit">Submit</button>
   </div>
 
   <script>
     const chatContainer = document.getElementById('chat-container');
     const chatInput = document.getElementById('chat-input');
     const chatSubmit = document.getElementById('chat-submit');
-    const botTyping = document.getElementById('bot-typing');
+    const responseContainer = document.getElementById('response-container');
+    const responseInput = document.getElementById('response-input');
+    const responseSubmit = document.getElementById('response-submit');
 
     let knowledgeBase = JSON.parse(localStorage.getItem('knowledgeBase')) || [];
 
@@ -145,33 +171,33 @@
     }
 
     function respondToUser(userInput) {
-      // Show "Puffbot is Typing..." message
-      botTyping.style.display = 'block';
-
-      // Simulate bot response delay (replace with actual response logic)
-      setTimeout(() => {
-        let response = '';
-        for (const [question, answer] of knowledgeBase) {
-          if (userInput.toLowerCase().includes(question.toLowerCase())) {
-            response = answer;
-            break;
-          }
+      let response = '';
+      for (const [question, answer] of knowledgeBase) {
+        if (userInput.toLowerCase().includes(question.toLowerCase())) {
+          response = answer;
+          break;
         }
+      }
 
-        if (response) {
-          addMessageToChat(`Chatbot: ${response}`, 'bot-message');
-        } else {
-          addMessageToChat(`Chatbot: I'm sorry, I don't have an answer for that. Can you teach me?`, 'bot-message');
-          const newAnswer = prompt(`Chatbot: I don't have an answer for "${userInput}". Please provide a response:`);
-          if (newAnswer) {
-            knowledgeBase.push([userInput, newAnswer]);
-            localStorage.setItem('knowledgeBase', JSON.stringify(knowledgeBase));
-          }
+      if (response) {
+        addMessageToChat(`Chatbot: ${response}`, 'bot-message');
+      } else {
+        showResponseUI(userInput);
+      }
+    }
+
+    function showResponseUI(userInput) {
+      responseContainer.style.display = 'flex';
+
+      responseSubmit.onclick = function() {
+        const newAnswer = responseInput.value.trim();
+        if (newAnswer) {
+          knowledgeBase.push([userInput, newAnswer]);
+          localStorage.setItem('knowledgeBase', JSON.stringify(knowledgeBase));
+          addMessageToChat(`Chatbot: ${newAnswer}`, 'bot-message');
+          responseContainer.style.display = 'none';
         }
-
-        // Hide "Puffbot is Typing..." message after bot response
-        botTyping.style.display = 'none';
-      }, 1000); // Simulated delay of 1 second
+      };
     }
   </script>
 </body>
