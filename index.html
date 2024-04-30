@@ -74,10 +74,16 @@
     #chat-submit:hover {
       background-color: #1565c0;
     }
+    #bot-typing {
+      color: #aaa;
+      font-style: italic;
+      display: none;
+    }
   </style>
 </head>
 <body>
   <div id="chat-container"></div>
+  <div id="bot-typing">Puffbot is Typing...</div>
   <div id="chat-input-container">
     <input type="text" id="chat-input" placeholder="Type your message...">
     <button id="chat-submit">Send</button>
@@ -87,10 +93,12 @@
     const chatContainer = document.getElementById('chat-container');
     const chatInput = document.getElementById('chat-input');
     const chatSubmit = document.getElementById('chat-submit');
+    const botTyping = document.getElementById('bot-typing');
 
     let knowledgeBase = JSON.parse(localStorage.getItem('knowledgeBase')) || [];
 
     chatSubmit.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keypress', handleKeyPress);
 
     function sendMessage() {
       const userInput = chatInput.value.trim();
@@ -137,24 +145,33 @@
     }
 
     function respondToUser(userInput) {
-      let response = '';
-      for (const [question, answer] of knowledgeBase) {
-        if (userInput.toLowerCase().includes(question.toLowerCase())) {
-          response = answer;
-          break;
-        }
-      }
+      // Show "Puffbot is Typing..." message
+      botTyping.style.display = 'block';
 
-      if (response) {
-        addMessageToChat(`Chatbot: ${response}`, 'bot-message');
-      } else {
-        addMessageToChat(`Chatbot: I'm sorry, I don't have an answer for that. Can you teach me?`, 'bot-message');
-        const newAnswer = prompt(`Chatbot: I don't have an answer for "${userInput}". Please provide a response:`);
-        if (newAnswer) {
-          knowledgeBase.push([userInput, newAnswer]);
-          localStorage.setItem('knowledgeBase', JSON.stringify(knowledgeBase));
+      // Simulate bot response delay (replace with actual response logic)
+      setTimeout(() => {
+        let response = '';
+        for (const [question, answer] of knowledgeBase) {
+          if (userInput.toLowerCase().includes(question.toLowerCase())) {
+            response = answer;
+            break;
+          }
         }
-      }
+
+        if (response) {
+          addMessageToChat(`Chatbot: ${response}`, 'bot-message');
+        } else {
+          addMessageToChat(`Chatbot: I'm sorry, I don't have an answer for that. Can you teach me?`, 'bot-message');
+          const newAnswer = prompt(`Chatbot: I don't have an answer for "${userInput}". Please provide a response:`);
+          if (newAnswer) {
+            knowledgeBase.push([userInput, newAnswer]);
+            localStorage.setItem('knowledgeBase', JSON.stringify(knowledgeBase));
+          }
+        }
+
+        // Hide "Puffbot is Typing..." message after bot response
+        botTyping.style.display = 'none';
+      }, 1000); // Simulated delay of 1 second
     }
   </script>
 </body>
