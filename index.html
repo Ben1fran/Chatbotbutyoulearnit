@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatbot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f0f0f0;
+    }
+    #chat-container {
+      width: 100%;
+      height: 70vh;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .message {
+      margin-bottom: 10px;
+    }
+    .user-message {
+      color: #1e88e5;
+    }
+    .bot-message {
+      color: #4caf50;
+    }
+    .copy-button {
+      background-color: #1e88e5;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 5px 10px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+    .copy-button:hover {
+      background-color: #1565c0;
+    }
+    #chat-input-container {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px;
+      background-color: #fff;
+      border-top: 1px solid #ccc;
+    }
+    #chat-input {
+      width: calc(100% - 100px);
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      font-size: 16px;
+      outline: none;
+    }
+    #chat-input:focus {
+      border-color: #1e88e5;
+    }
+    #chat-submit {
+      background-color: #1e88e5;
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    #chat-submit:hover {
+      background-color: #1565c0;
+    }
+  </style>
+</head>
+<body>
+  <div id="chat-container"></div>
+  <div id="chat-input-container">
+    <input type="text" id="chat-input" placeholder="Type your message...">
+    <button id="chat-submit">Send</button>
+  </div>
+
+  <script>
+    const chatContainer = document.getElementById('chat-container');
+    const chatInput = document.getElementById('chat-input');
+    const chatSubmit = document.getElementById('chat-submit');
+
+    let knowledgeBase = JSON.parse(localStorage.getItem('knowledgeBase')) || [];
+
+    chatSubmit.addEventListener('click', sendMessage);
+
+    function sendMessage() {
+      const userInput = chatInput.value.trim();
+      if (userInput) {
+        addMessageToChat(`You: ${userInput}`, 'user-message');
+        respondToUser(userInput);
+        chatInput.value = '';
+      }
+    }
+
+    function handleKeyPress(event) {
+      if (event.key === 'Enter') {
+        sendMessage();
+      }
+    }
+
+    function addMessageToChat(message, className) {
+      const messageElement = document.createElement('div');
+      messageElement.textContent = message;
+      messageElement.classList.add('message', className);
+      if (className === 'bot-message') {
+        const copyButton = document.createElement('button');
+        copyButton.textContent = 'Copy';
+        copyButton.classList.add('copy-button');
+        copyButton.addEventListener('click', () => copyMessage(message, copyButton));
+        messageElement.appendChild(copyButton);
+      }
+      chatContainer.appendChild(messageElement);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function copyMessage(message, copyButton) {
+      const messageText = message.replace('Chatbot: ', '');
+      const tempInput = document.createElement('textarea');
+      tempInput.value = messageText;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempInput);
+      copyButton.textContent = 'Copied';
+      setTimeout(() => {
+        copyButton.textContent = 'Copy';
+      }, 2000);
+    }
+
+    function respondToUser(userInput) {
+      let response = '';
+      for (const [question, answer] of knowledgeBase) {
+        if (userInput.toLowerCase().includes(question.toLowerCase())) {
+          response = answer;
+          break;
+        }
+      }
+
+      if (response) {
+        addMessageToChat(`Chatbot: ${response}`, 'bot-message');
+      } else {
+        addMessageToChat(`Chatbot: I'm sorry, I don't have an answer for that. Can you teach me?`, 'bot-message');
+        const newAnswer = prompt(`Chatbot: I don't have an answer for "${userInput}". Please provide a response:`);
+        if (newAnswer) {
+          knowledgeBase.push([userInput, newAnswer]);
+          localStorage.setItem('knowledgeBase', JSON.stringify(knowledgeBase));
+        }
+      }
+    }
+  </script>
+</body>
+</html>
